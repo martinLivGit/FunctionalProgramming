@@ -97,18 +97,16 @@ object AccountAssignment {
 
       //join customer data with account
       //drop the second customerId column on account
-      val customerAccountDS: Dataset[CustomerAccountData] = customersDS
-         .alias("cust")
-         .join(accountsDS.alias("acct")
-              ,customersDS.col("customerId").equalTo(accountsDS.col("customerId"))
-              ,"inner")
-         .drop($"acct.customerId")
-         .as[CustomerAccountData]
-
       //Group accounts by customer id
-      //map the group to the required aggregate by folding the elements of each group
-      //return a list
-      customerAccountDS
+      //map the group to the required custom aggregate by folding the elements of each group
+      //return result as a list
+      //val customerAccountDS: Dataset[CustomerAccountData] =
+      customersDS
+         .join(accountsDS//.alias("acct")
+            ,customersDS.col("customerId").equalTo(accountsDS.col("customerId"))
+            ,"inner")
+         .drop(accountsDS.col("customerId"))
+         .as[CustomerAccountData]
          .groupByKey(_.customerId)
          .mapGroups(customerAccountsAggregator)
          .collect()
