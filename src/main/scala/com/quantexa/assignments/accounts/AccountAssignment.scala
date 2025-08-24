@@ -100,9 +100,8 @@ object AccountAssignment {
       //Group accounts by customer id
       //map the group to the required custom aggregate by folding the elements of each group
       //return result as a list
-      //val customerAccountDS: Dataset[CustomerAccountData] =
       customersDS
-         .join(accountsDS//.alias("acct")
+         .join(accountsDS
             ,customersDS.col("customerId").equalTo(accountsDS.col("customerId"))
             ,"inner")
          .drop(accountsDS.col("customerId"))
