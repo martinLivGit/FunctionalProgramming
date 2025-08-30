@@ -53,11 +53,6 @@ case class GroupData(
 
 object GroupOccupancy {
 
-   private val compareAddressAndFromDate = (address1: AddressData, address2: AddressData) => {
-      if (address1.addressId == address2.addressId) address1.fromDate < address2.fromDate
-      else address1.addressId < address2.addressId
-   }
-
    private val conditionForSharedOccupancy = (address: AddressData, group: GroupData) => {
       (address.addressId == group.addressId
          && address.fromDate >= group.fromDate
@@ -109,6 +104,12 @@ object GroupOccupancy {
 
    //1.initialise the shared occupancy data to Nil and process all sorted occupants
    def apply(occupants : List[AddressData] ): List[GroupData] = {
+
+      val compareAddressAndFromDate = (address1: AddressData, address2: AddressData) => {
+         if (address1.addressId == address2.addressId) address1.fromDate < address2.fromDate
+         else address1.addressId < address2.addressId
+      }
+
       groupOccupants( occupants.sortWith(compareAddressAndFromDate), Nil)
    }
 }

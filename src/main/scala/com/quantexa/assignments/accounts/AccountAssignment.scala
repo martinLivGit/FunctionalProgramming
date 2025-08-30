@@ -83,7 +83,7 @@ object AccountAssignment {
    //importing spark implicits allows functions such as dataframe.as[T]
    import spark.implicits._
 
-   //Set logger level to Warn
+   //set logging level
    Logger.getRootLogger.setLevel(Level.WARN)
 
    private def customerAccountsAggregator (customerId: String, acctLst: Iterator[CustomerAccountData]) : CustomerAccountOutput = {
@@ -103,8 +103,9 @@ object AccountAssignment {
       customersDS
          .join(accountsDS
             ,customersDS.col("customerId").equalTo(accountsDS.col("customerId"))
-            ,"inner")
-         .drop(accountsDS.col("customerId"))
+            ,"full_outer")
+         .drop(customersDS.col("customerId"))
+         .na.fill((Map("balance" -> 0, "forename" -> "", "surname" -> "")))
          .as[CustomerAccountData]
          .groupByKey(_.customerId)
          .mapGroups(customerAccountsAggregator)
