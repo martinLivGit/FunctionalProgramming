@@ -53,53 +53,33 @@ case class GroupData(
 
 object GroupOccupancy {
 
-   private val conditionForSharedOccupancy = (address: AddressData, group: GroupData) => {
-      (address.addressId == group.addressId
-         && address.fromDate >= group.fromDate
-         && address.fromDate <= group.toDate)
-   }
-
    @tailrec
    private def groupOccupants(occupants: List[AddressData], groupedOccupants: List[GroupData]): List[GroupData] = {
 
-      //No further occupancyData so return the grouped occupancy data
-      if (occupants.isEmpty) {
-         groupedOccupants
+      val conditionForSharedOccupancy = (address: AddressData, groupedOccupants: List[GroupData]) => {
+         if (groupedOccupants == Nil) Nil
+         else (address.addressId == groupedOccupants.head.addressId
+               && address.fromDate >= groupedOccupants.head.fromDate
+               && address.fromDate <= groupedOccupants.head.toDate)
       }
-      else
-      {
-         //Process the head of the next occupant ie the head occupant
-         val newGroupedOccupancyData: List[GroupData] =
-            //Initial case so add first occupancy data to grouped occupancy
-            if (groupedOccupants.isEmpty)
-            {
-               GroupData(1
-                  , Seq(occupants.head.customerId)
-                  , occupants.head.addressId
-                  , occupants.head.fromDate
-                  , occupants.head.toDate) :: groupedOccupants
+
+      occupants match {
+         case Nil => //No further occupancyData so return the grouped occupancy data
+            groupedOccupants
+         case _   => //Process the head of the next occupant ie the head occupant
+            val oh  = occupants.head
+            val newGroupedOccupancyData: List[GroupData] = conditionForSharedOccupancy(occupants.head, groupedOccupants) match {
+               case Nil => //Initial case so add first occupancy data to grouped occupancy
+                  GroupData(1,Seq(oh.customerId),oh.addressId,oh.fromDate,oh.toDate) :: groupedOccupants
+               case true => //Check for shared occupancy and if matches then add the customerId to the current occupancy group
+                  val goh = groupedOccupants.head
+                  GroupData(goh.groupId,oh.customerId +: goh.customerIds,goh.addressId,goh.fromDate,goh.toDate) :: groupedOccupants.tail
+               case false => //Create a new occupancy group and add to the list of occupancy groups
+                  GroupData(groupedOccupants.head.groupId + 1,Seq(oh.customerId),oh.addressId,oh.fromDate,oh.toDate) :: groupedOccupants
             }
-            //Check for shared occupancy and if matches then add the cutomerId to the current occupancy group
-            else if (conditionForSharedOccupancy(occupants.head, groupedOccupants.head)) {
-               GroupData(
-                  groupedOccupants.head.groupId
-                  , occupants.head.customerId +: groupedOccupants.head.customerIds
-                  , groupedOccupants.head.addressId
-                  , groupedOccupants.head.fromDate
-                  , groupedOccupants.head.toDate) :: groupedOccupants.tail
-            }
-            //create a new occupancy group and add to the list of occupancy groups
-            else {
-               GroupData(
-                  groupedOccupants.head.groupId + 1
-                  , Seq(occupants.head.customerId)
-                  , occupants.head.addressId
-                  , occupants.head.fromDate
-                  , occupants.head.toDate) :: groupedOccupants
-            }
-         // process the remaining occupancy records ie the tail
-         groupOccupants(occupants.tail, newGroupedOccupancyData)
-      }
+            // process the remaining occupancy records, ie the occupants tail, using tail recursion
+            groupOccupants(occupants.tail, newGroupedOccupancyData)
+         }
    }
 
    //1.initialise the shared occupancy data to Nil and process all sorted occupants
