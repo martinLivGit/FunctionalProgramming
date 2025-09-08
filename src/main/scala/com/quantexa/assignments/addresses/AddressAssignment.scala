@@ -53,16 +53,16 @@ case class GroupData(
 
 object GroupOccupancy {
 
+   //logic check for shared/overlapping occupancy
+   private val conditionForSharedOccupancy = (address: AddressData, groupedOccupants: List[GroupData]) => {
+      if (groupedOccupants == Nil) false
+      else (address.addressId == groupedOccupants.head.addressId
+            && address.fromDate >= groupedOccupants.head.fromDate
+            && address.fromDate <= groupedOccupants.head.toDate)
+   }
+
    @tailrec
    private def groupOccupants(occupants: List[AddressData], groupedOccupants: List[GroupData]): List[GroupData] = {
-
-      //logic check for shared/overlapping occupancy
-      val conditionForSharedOccupancy = (address: AddressData, groupedOccupants: List[GroupData]) => {
-         if (groupedOccupants == Nil) false
-         else (address.addressId == groupedOccupants.head.addressId
-               && address.fromDate >= groupedOccupants.head.fromDate
-               && address.fromDate <= groupedOccupants.head.toDate)
-      }
 
       occupants match {
          case Nil => //No further occupancyData so return the grouped occupancy data
