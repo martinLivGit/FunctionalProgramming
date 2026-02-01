@@ -39,21 +39,22 @@ case class DyAcctAccmltr(
 
 object TransactionAssignment {
 
-  def txnAggregatorWithFold: ( Int, String, List[(Int, Transaction)]) => DayAccountStats =
+  def txnAggregatorWithFold: ( Int, String, List[(Int, Transaction)]) => DayAccountStats = {
     (day:Int, account: String, dyTxnLst: List[(Int,Transaction)]) =>
     {
-      val agg = dyTxnLst.foldLeft(DyAcctAccmltr(0,0,0,0,0)) {
-          case (acc: DyAcctAccmltr, (_, txn: Transaction)) =>
-            val max = if (txn.transactionAmount > acc.maxTransaction) txn.transactionAmount else acc.maxTransaction
+      val (max,tot,aa,cc,ff) = dyTxnLst.foldLeft((0.0,0.0,0.0,0.0,0.0)) {
+          case ( (m: Double, t:Double, aa:Double, cc:Double, ff:Double), (day: Int, txn: Transaction)) =>
+            val max = if (txn.transactionAmount > m) txn.transactionAmount else m
             txn.category match {
-              case "AA" => DyAcctAccmltr(max, acc.aaTotal + txn.transactionAmount, acc.ccTotal, acc.ffTotal, acc.total + txn.transactionAmount)
-              case "CC" => DyAcctAccmltr(max, acc.aaTotal , acc.ccTotal + txn.transactionAmount, acc.ffTotal, acc.total + txn.transactionAmount)
-              case "FF" => DyAcctAccmltr(max, acc.aaTotal, acc.ccTotal, acc.ffTotal + txn.transactionAmount, acc.total + txn.transactionAmount)
-              case _    => DyAcctAccmltr(max, acc.aaTotal, acc.ccTotal, acc.ffTotal, acc.total + txn.transactionAmount)
+              case "AA" => (max, t + txn.transactionAmount, aa + txn.transactionAmount, cc, ff)
+              case "CC" => (max, t + txn.transactionAmount, aa , cc + txn.transactionAmount, ff)
+              case "FF" => (max, t + txn.transactionAmount, aa, cc, ff + txn.transactionAmount)
+              case _    => (max, t + txn.transactionAmount, aa, cc, ff)
             }
         }
-      DayAccountStats(day, account, agg.maxTransaction, agg.total/dyTxnLst.size,agg.aaTotal, agg.ccTotal, agg.ffTotal)
+      DayAccountStats(day, account, max, tot/dyTxnLst.size, aa, cc, ff)
     }
+  }
 
     def txnAggregatorWithFilter: ( Int, String, List[(Int, Transaction)]) => DayAccountStats =
          (day:Int, account: String, dyTxnLst: List[(Int,Transaction)]) =>
