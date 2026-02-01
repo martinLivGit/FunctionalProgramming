@@ -86,7 +86,7 @@ object AccountAssignment {
    //set logging level
    Logger.getRootLogger.setLevel(Level.WARN)
 
-   private def customerAccountsAggregatorWithFold (customerId: String, acctLst: Iterator[CustomerAccountData]) : CustomerAccountOutput = {
+   private def customerAccountsAggregatorWithFold (customerId: String, acctIt: Iterator[CustomerAccountData]) : CustomerAccountOutput = {
       val acctLst = acctIt.toList
       val (accounts, totalBalance) = acctLst.foldLeft((List[AccountData](), 0L)) {
         case ( (l:List[AccountData], t:Long), acct: CustomerAccountData) =>
@@ -96,7 +96,6 @@ object AccountAssignment {
   }
 
   private def customerAccountsAggregator (customerId: String, acctIt: Iterator[CustomerAccountData]) : CustomerAccountOutput = {
-
     val acctLst = acctIt.toList
     val forename = acctLst.head.forename
     val surname = acctLst.head.surname
@@ -107,7 +106,6 @@ object AccountAssignment {
       (accounts: List[AccountData], acct: CustomerAccountData) =>
         accounts :+ AccountData(customerId, acct.accountId, acct.balance)
      }
-
     CustomerAccountOutput(customerId,forename,surname,accounts,numberAccounts, totalBalance, averageBalance)
   }
 
