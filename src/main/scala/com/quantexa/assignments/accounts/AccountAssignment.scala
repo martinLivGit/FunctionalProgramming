@@ -86,12 +86,28 @@ object AccountAssignment {
    //set logging level
    Logger.getRootLogger.setLevel(Level.WARN)
 
-   private def customerAccountsAggregator (customerId: String, acctLst: Iterator[CustomerAccountData]) : CustomerAccountOutput = {
+   private def customerAccountsAggregatorWithFold (customerId: String, acctLst: Iterator[CustomerAccountData]) : CustomerAccountOutput = {
       acctLst.foldLeft(CustomerAccountOutput(customerId, "", "", Nil, 0, 0, 0.0)) {
          (acc: CustomerAccountOutput, acct: CustomerAccountData) =>
             CustomerAccountOutput(customerId, acct.forename, acct.surname, acc.accounts :+ AccountData(customerId, acct.accountId, acct.balance), acc.numberAccounts + 1, acc.totalBalance + acct.balance, (acc.totalBalance + acct.balance) / (acc.numberAccounts + 1))
       }
    }
+
+  private def customerAccountsAggregator (customerId: String, acctIt: Iterator[CustomerAccountData]) : CustomerAccountOutput = {
+
+    val acctLst = acctIt.toList
+    val forename = acctLst.head.forename
+    val surname = acctLst.head.surname
+    val totalBalance = acctLst.map(_.balance).sum
+    val numberAccounts = acctLst.size
+    val averageBalance = totalBalance/numberAccounts
+    val accounts: List[AccountData] = acctLst.foldLeft(List[AccountData]()) {
+      (accounts: List[AccountData], acct: CustomerAccountData) =>
+        accounts :+ AccountData(customerId, acct.accountId, acct.balance)
+     }
+
+    CustomerAccountOutput(customerId,forename,surname,accounts,numberAccounts, totalBalance, averageBalance)
+  }
 
    def apply(customersDS: Dataset[CustomerData], accountsDS: Dataset[AccountData]): List[CustomerAccountOutput] = {
 
