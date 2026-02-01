@@ -29,14 +29,6 @@ case class DayAccountStats(
   ffTotal: Double
 )
 
-case class DyAcctAccmltr(
-  maxTransaction: Double
-  ,aaTotal: Double
-  ,ccTotal: Double
-  ,ffTotal: Double
-  ,total: Double
-)
-
 object TransactionAssignment {
 
   def txnAggregatorWithFold: ( Int, String, List[(Int, Transaction)]) => DayAccountStats = {
