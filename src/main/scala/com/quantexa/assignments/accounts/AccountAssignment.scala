@@ -87,11 +87,13 @@ object AccountAssignment {
    Logger.getRootLogger.setLevel(Level.WARN)
 
    private def customerAccountsAggregatorWithFold (customerId: String, acctLst: Iterator[CustomerAccountData]) : CustomerAccountOutput = {
-      acctLst.foldLeft(CustomerAccountOutput(customerId, "", "", Nil, 0, 0, 0.0)) {
-         (acc: CustomerAccountOutput, acct: CustomerAccountData) =>
-            CustomerAccountOutput(customerId, acct.forename, acct.surname, acc.accounts :+ AccountData(customerId, acct.accountId, acct.balance), acc.numberAccounts + 1, acc.totalBalance + acct.balance, (acc.totalBalance + acct.balance) / (acc.numberAccounts + 1))
+      val acctLst = acctIt.toList
+      val (accounts, totalBalance) = acctLst.foldLeft((List[AccountData](), 0L)) {
+        case ( (l:List[AccountData], t:Long), acct: CustomerAccountData) =>
+          (  l :+ AccountData(customerId, acct.accountId, acct.balance), t + acct.balance)
       }
-   }
+      CustomerAccountOutput(customerId, acctLst.head.forename, acctLst.head.surname, accounts, acctLst.size, totalBalance, totalBalance/acctLst.size )
+  }
 
   private def customerAccountsAggregator (customerId: String, acctIt: Iterator[CustomerAccountData]) : CustomerAccountOutput = {
 
