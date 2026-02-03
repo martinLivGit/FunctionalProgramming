@@ -35,11 +35,7 @@ class AccountAssignmentBaseSuite extends FunSuite {
    val accountsDF: DataFrame = accounts.toDF("customerId", "accountId", "balance")
    val customersDF: DataFrame = customers.toDF( "customerId", "forename","surname")
 
-   //Create Datasets of sources
-   val customersDS: Dataset[CustomerData] = customersDF.as[CustomerData]
-   val accountsDS: Dataset[AccountData] = accountsDF.withColumn("balance", 'balance.cast("long")).as[AccountData]
-
-   val result: List[CustomerAccountOutput] = AccountAssignment(customersDS, accountsDS)
+   val result: List[CustomerAccountOutput] = AccountAssignment(customersDF, accountsDF)
 
    test("results size") {
       assert( result.size == 3)
