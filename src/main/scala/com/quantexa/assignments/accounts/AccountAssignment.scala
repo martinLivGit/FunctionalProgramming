@@ -97,7 +97,7 @@ object AccountAssignment {
       val accountsDS = accountsDF.withColumn("balance", 'balance.cast("long")).as[AccountData]
 
       //join customer data with account
-      //drop the second customerId column on account
+      //add a customerId field populated from either customer or account objects
       //Group accounts by customer id
       //map the group to the required custom aggregate by folding the elements of each group
       //return result as a list
