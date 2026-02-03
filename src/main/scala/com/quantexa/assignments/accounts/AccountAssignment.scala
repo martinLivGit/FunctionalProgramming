@@ -80,6 +80,8 @@ object AccountAssignment {
    Logger.getRootLogger.setLevel(Level.WARN)
 
    private def customerAccountsAggregator(customerId: String, acctIt: Iterator[(String,(CustomerData,AccountData))]) : CustomerAccountOutput = {
+      //fold the list for the given customerId - accumulating the total balance and list of accounts
+      //return the summary of the customer info, list of accounts, and stats
       val acctLst = acctIt.toList
       val (accounts, totalBalance) = acctLst.foldLeft((List[AccountData](),0L)) {
          case ( (l: List[AccountData], t: Long), ca: (String,(CustomerData,AccountData))) => {
