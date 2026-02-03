@@ -4,6 +4,7 @@ import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
 
 import scala.:+
+import scala.sys.exit
 
 /***
  * A common problem we face at Quantexa is having lots of disjointed raw sources of data and having to aggregate and collect
@@ -64,14 +65,6 @@ case class CustomerAccountOutput(
   averageBalance: Double
 )
 
-case class CustomerAccountData(
-   customerId: String,
-   forename: String,
-   surname: String,
-   accountId: String,
-   balance: Long
-)
-
 object AccountAssignment {
 
    //Create a spark context, using a local master so Spark runs on the local machine
@@ -86,30 +79,22 @@ object AccountAssignment {
    //set logging level
    Logger.getRootLogger.setLevel(Level.WARN)
 
-   private def customerAccountsAggregatorWithFold (customerId: String, acctIt: Iterator[CustomerAccountData]) : CustomerAccountOutput = {
+   private def customerAccountsAggregator(customerId: String, acctIt: Iterator[(String,(CustomerData,AccountData))]) : CustomerAccountOutput = {
       val acctLst = acctIt.toList
-      val (accounts, totalBalance) = acctLst.foldLeft((List[AccountData](), 0L)) {
-        case ( (l:List[AccountData], t:Long), acct: CustomerAccountData) =>
-          (  l :+ AccountData(customerId, acct.accountId, acct.balance), t + acct.balance)
+      val (accounts, totalBalance) = acctLst.foldLeft((List[AccountData](),0L)) {
+         case ( (l: List[AccountData], t: Long), ca: (String,(CustomerData,AccountData))) => {
+            if ( ca._2._2 != null ) (l :+ ca._2._2, t + ca._2._2.balance)
+            else ( l, t)
+         }
       }
-      CustomerAccountOutput(customerId, acctLst.head.forename, acctLst.head.surname, accounts, acctLst.size, totalBalance, totalBalance/acctLst.size )
-  }
+      val (forename, surname) = if (acctLst.head._2._1 != null) (acctLst.head._2._1.forename, acctLst.head._2._1.surname) else ("","")
+      CustomerAccountOutput(customerId,forename,surname,accounts,acctLst.size,totalBalance,totalBalance/acctLst.size)
+   }
 
-  private def customerAccountsAggregator (customerId: String, acctIt: Iterator[CustomerAccountData]) : CustomerAccountOutput = {
-    val acctLst = acctIt.toList
-    val forename = acctLst.head.forename
-    val surname = acctLst.head.surname
-    val totalBalance = acctLst.map(_.balance).sum
-    val numberAccounts = acctLst.size
-    val averageBalance = totalBalance/numberAccounts
-    val accounts: List[AccountData] = acctLst.foldLeft(List[AccountData]()) {
-      (accounts: List[AccountData], acct: CustomerAccountData) =>
-        accounts :+ AccountData(customerId, acct.accountId, acct.balance)
-     }
-    CustomerAccountOutput(customerId,forename,surname,accounts,numberAccounts, totalBalance, averageBalance)
-  }
+   def apply(customersDF: DataFrame, accountsDF: DataFrame): List[CustomerAccountOutput] = {
 
-   def apply(customersDS: Dataset[CustomerData], accountsDS: Dataset[AccountData]): List[CustomerAccountOutput] = {
+      val customersDS = customersDF.as[CustomerData]
+      val accountsDS = accountsDF.withColumn("balance", 'balance.cast("long")).as[AccountData]
 
       //join customer data with account
       //drop the second customerId column on account
@@ -117,13 +102,11 @@ object AccountAssignment {
       //map the group to the required custom aggregate by folding the elements of each group
       //return result as a list
       customersDS
-         .join(accountsDS
+         .joinWith(accountsDS
             ,customersDS.col("customerId").equalTo(accountsDS.col("customerId"))
             ,"full_outer")
-         .drop(customersDS.col("customerId"))
-         .na.fill((Map("balance" -> 0, "forename" -> "", "surname" -> "")))
-         .as[CustomerAccountData]
-         .groupByKey(_.customerId)
+         .map( x => if (x._1 == null) (x._2.customerId,x) else (x._1.customerId,x))
+         .groupByKey( x => x._1 )
          .mapGroups(customerAccountsAggregator)
          .collect()
          .toList
