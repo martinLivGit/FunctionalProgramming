@@ -8,17 +8,6 @@ case class Transaction(
   transactionAmount: Double
 )
 
-case class DayTotalValue(
-  transactionDay: Int,
-  total: Double
-)
-
-case class AvgValueForAccountAndCategory(
-  accountId: String,
-  category: String,
-  averageValue: Double
-)
-
 case class DayAccountStats(
   transactionDay: Int,
   accountId: String,
@@ -51,14 +40,16 @@ object TransactionAssignment {
     def txnAggregatorWithFilter: ( Int, String, List[(Int, Transaction)]) => DayAccountStats =
          (day:Int, account: String, dyTxnLst: List[(Int,Transaction)]) =>
    {
-     val tot = dyTxnLst.map(_._2.transactionAmount).sum
-     val max = dyTxnLst.map(_._2.transactionAmount).max
-     val avg = tot/dyTxnLst.size
-     val aa = dyTxnLst.filter(_._2.category == "AA").map(_._2.transactionAmount).sum
-     val cc = dyTxnLst.filter(_._2.category == "CC").map(_._2.transactionAmount).sum
-     val ff = dyTxnLst.filter(_._2.category == "FF").map(_._2.transactionAmount).sum
+      val txnTotalAmount = ( category: String) => dyTxnLst.filter(_._2.category == category).map(_._2.transactionAmount).sum
 
-     DayAccountStats(day,account,max,avg,aa,cc,ff)
+      val tot = dyTxnLst.map(_._2.transactionAmount).sum
+      val max = dyTxnLst.map(_._2.transactionAmount).max
+      val avg = tot/dyTxnLst.size
+      val aa = txnTotalAmount("AA")
+      val cc = txnTotalAmount("CC")
+      val ff = txnTotalAmount("FF")
+
+      DayAccountStats(day,account,max,avg,aa,cc,ff)
    }
 
    def apply(transactions: List[Transaction]
