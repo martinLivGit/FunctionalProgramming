@@ -88,8 +88,9 @@ object AccountAssignment {
             if ( ca._2._2 != null ) (l :+ ca._2._2, t + ca._2._2.balance) else ( l, t)
          }
       }
+      val avgBalance = if ( accounts.isEmpty) 0 else totalBalance/accounts.size
       val (forename, surname) = if (acctLst.head._2._1 != null) (acctLst.head._2._1.forename, acctLst.head._2._1.surname) else ("","")
-      CustomerAccountOutput(customerId,forename,surname,accounts,acctLst.size,totalBalance,totalBalance/acctLst.size)
+      CustomerAccountOutput(customerId,forename,surname,accounts,accounts.size,totalBalance,avgBalance)
    }
 
    def apply(customersDF: DataFrame, accountsDF: DataFrame): List[CustomerAccountOutput] = {
