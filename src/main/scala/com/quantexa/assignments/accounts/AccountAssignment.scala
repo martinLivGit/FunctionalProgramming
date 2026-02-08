@@ -84,9 +84,8 @@ object AccountAssignment {
       //return the summary of the customer info, list of accounts, and stats
       val acctLst = acctIt.toList
       val (accounts, totalBalance) = acctLst.foldLeft((List[AccountData](),0L)) {
-         case ( (l: List[AccountData], t: Long), ca: (String,(CustomerData,AccountData))) => {
-            if ( ca._2._2 != null ) (l :+ ca._2._2, t + ca._2._2.balance) else ( l, t)
-         }
+         case ((l:List[AccountData],t:Long),(_,(_,account:AccountData))) if account != null => (l :+ account, t + account.balance)
+         case ((l:List[AccountData],t:Long),_) if account != null => (l,t)       
       }
       val avgBalance = if ( accounts.isEmpty) 0 else totalBalance/accounts.size
       val (forename, surname) = if (acctLst.head._2._1 != null) (acctLst.head._2._1.forename, acctLst.head._2._1.surname) else ("","")
