@@ -60,6 +60,9 @@ object TransactionAssignmentSparkSQL {
       ex3_3.createTempView("finalResult")
       ex3_3.show(100)
       ex3_3.printSchema()
+     
+      //importing spark implicits allows functions such as dataframe.as[T]
+      import spark.implicits._
 
       ex3_3.as[DayAccountStats].collect().toList
    }
@@ -165,9 +168,6 @@ object TransactionAssignmentSparkSQL {
    private def sparkInit(transactions: List[Transaction]) = {
       //Create a spark context, using a local master so Spark runs on the local machine
       val spark = SparkSession.builder().master("local[*]").appName("AccountAssignment").getOrCreate()
-
-      //importing spark implicits allows functions such as dataframe.as[T]
-      import spark.implicits._
 
       //Set logger level to Warn
       Logger.getRootLogger.setLevel(Level.WARN)
