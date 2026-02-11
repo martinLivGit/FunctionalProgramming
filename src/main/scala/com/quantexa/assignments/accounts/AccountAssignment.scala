@@ -79,7 +79,7 @@ object AccountAssignment {
    //set logging level
    Logger.getRootLogger.setLevel(Level.WARN)
 
-   private def customerAccountsAggregator2(customerId: String, acctIt: Iterator[(String,(CustomerData,AccountData))]) : CustomerAccountOutput = {
+   private def customerAccountsAggregator(customerId: String, acctIt: Iterator[(String,(CustomerData,AccountData))]) : CustomerAccountOutput = {
 
     case class Accumulator( accounts:List[AccountData] = List.empty[AccountData],totalBalance:Long = 0L)
 
@@ -88,11 +88,11 @@ object AccountAssignment {
       case (accumulator,(_,(_,account))) if account != null => Accumulator(accumulator.accounts :+ account, accumulator.totalBalance + account.balance)
       case (accumulator,_) => accumulator
     }
-    val accounts = accumulator.accounts 
+    val accounts = accumulator.accounts
     val totalBalance = accumulator.totalBalance
     val avgBalance = if ( accounts.isEmpty) 0 else totalBalance/accounts.size
     val (forename, surname) = if (acctLst.head._2._1 != null) (acctLst.head._2._1.forename, acctLst.head._2._1.surname) else ("","")
-    CustomerAccountOutput(customerId,forename,surname,accumulator.accounts,accumulator.accounts.size,accumulator.totalBalance,avgBalance)
+    CustomerAccountOutput(customerId,forename,surname,accounts,accounts.size,totalBalance,avgBalance)
   }
 
    def apply(customersDF: DataFrame, accountsDF: DataFrame): List[CustomerAccountOutput] = {
