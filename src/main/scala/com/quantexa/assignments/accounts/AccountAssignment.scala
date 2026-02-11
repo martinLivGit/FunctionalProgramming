@@ -80,17 +80,15 @@ object AccountAssignment {
    Logger.getRootLogger.setLevel(Level.WARN)
 
    private def customerAccountsAggregator(customerId: String, acctIt: Iterator[(String,(CustomerData,AccountData))]) : CustomerAccountOutput = {
-      //fold the list for the given customerId - accumulating the total balance and list of accounts
-      //return the summary of the customer info, list of accounts, and stats
-      val acctLst = acctIt.toList
-      val (accounts, totalBalance) = acctLst.foldLeft((List[AccountData](),0L)) {
-         case ((l:List[AccountData],t:Long),(_,(_,account:AccountData))) if account != null => (l :+ account, t + account.balance)
-         case ((l:List[AccountData],t:Long),_) => (l,t)       
-      }
-      val avgBalance = if ( accounts.isEmpty) 0 else totalBalance/accounts.size
-      val (forename, surname) = if (acctLst.head._2._1 != null) (acctLst.head._2._1.forename, acctLst.head._2._1.surname) else ("","")
-      CustomerAccountOutput(customerId,forename,surname,accounts,accounts.size,totalBalance,avgBalance)
-   }
+    val acctLst = acctIt.toList
+    val (accounts, totalBalance) = acctLst.foldLeft((List[AccountData](),0L)) {
+      case ((l,t),(_,(_,account))) if account != null => (l :+ account, t + account.balance)
+      case (accumulator,_) => accumulator
+    }
+    val avgBalance = if ( accounts.isEmpty) 0 else totalBalance/accounts.size
+    val (forename, surname) = if (acctLst.head._2._1 != null) (acctLst.head._2._1.forename, acctLst.head._2._1.surname) else ("","")
+    CustomerAccountOutput(customerId,forename,surname,accounts,accounts.size,totalBalance,avgBalance)
+  }
 
    def apply(customersDF: DataFrame, accountsDF: DataFrame): List[CustomerAccountOutput] = {
 
