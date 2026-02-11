@@ -22,7 +22,7 @@ object TransactionAssignment {
 
   def txnAggregatorWithFold(day:Int, account: String, dyTxnLst: List[(Int,Transaction)]):DayAccountStats = {
       val (max,tot,aa,cc,ff) = dyTxnLst.foldLeft((0D,0D,0D,0D,0D))  {
-          case ( (m: Double, t:Double, aa:Double, cc:Double, ff:Double), (day: Int, txn: Transaction)) =>
+          case ( (m,t,aa,cc,ff), (day,txn)) =>
             val max = if (txn.transactionAmount > m) txn.transactionAmount else m
             txn.category match {
               case "AA" => (max, t + txn.transactionAmount, aa + txn.transactionAmount, cc, ff)
