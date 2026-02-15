@@ -54,11 +54,9 @@ case class GroupData(
 object GroupOccupancy {
 
   //logic check for shared/overlapping occupancy
-  private def sharedOccupancy(address: AddressData, groupedOccupants: List[GroupData]): Boolean = {
-    if (groupedOccupants == Nil) false
-    else (address.addressId == groupedOccupants.head.addressId
-      && address.fromDate >= groupedOccupants.head.fromDate
-      && address.fromDate <= groupedOccupants.head.toDate)
+  private def sharedOccupancy(address: AddressData, group: GroupData): Boolean = {
+    (address.addressId == group.addressId && address.fromDate >= group.fromDate
+      && address.fromDate <= group.toDate)
   }
 
   private def compareAddressAndFromDate(address1: AddressData, address2: AddressData) : Boolean = {
@@ -70,7 +68,7 @@ object GroupOccupancy {
     val newGroupedOccupancyData = (occupants, groupedOccupants) match {
       case (Nil, _) => //No further occupancyData so return the grouped occupancy data
         return groupedOccupants
-      case (occ :: _, grp :: _) if sharedOccupancy(occ, groupedOccupants) => //Process the head of the next occupant ie the head occupant
+      case (occ :: _, grp :: _) if sharedOccupancy(occ,grp) => //Process the head of the next occupant ie the head occupant
         val grpToDate = if (grp.toDate > occ.toDate) grp.toDate else occ.toDate
         GroupData(grp.groupId,occ.customerId +: grp.customerIds,grp.addressId,grp.fromDate,grpToDate) :: groupedOccupants.tail
       case (occ :: _, grp :: _) => //Create a new occupancy group and add to the list of occupancy groups
