@@ -37,60 +37,56 @@ import scala.io.Source
 
 //Define a case class AddressData which stores the occupancy data
 case class AddressData(
-                         customerId: String
-                         ,addressId: String
-                         ,fromDate: Int
-                         ,toDate: Int
-                      )
+  customerId: String
+  ,addressId: String
+  ,fromDate: Int
+  ,toDate: Int
+)
 
 case class GroupData(
-                       groupId: Long
-                       ,customerIds: Seq[String]
-                       ,addressId: String
-                       ,fromDate: Int
-                       ,toDate: Int
-                    )
+  groupId: Long
+  ,customerIds: Seq[String]
+  ,addressId: String
+  ,fromDate: Int
+  ,toDate: Int
+)
 
 object GroupOccupancy {
 
-   //logic check for shared/overlapping occupancy
-   private val conditionForSharedOccupancy = (address: AddressData, groupedOccupants: List[GroupData]) => {
-      if (groupedOccupants == Nil) false
-      else (address.addressId == groupedOccupants.head.addressId
-            && address.fromDate >= groupedOccupants.head.fromDate
-            && address.fromDate <= groupedOccupants.head.toDate)
-   }
+  //logic check for shared/overlapping occupancy
+  private def conditionForSharedOccupancy(address: AddressData, groupedOccupants: List[GroupData]): Boolean = {
+    if (groupedOccupants == Nil) false
+    else (address.addressId == groupedOccupants.head.addressId
+      && address.fromDate >= groupedOccupants.head.fromDate
+      && address.fromDate <= groupedOccupants.head.toDate)
+  }
 
-   @tailrec
-   private def groupOccupants(occupants: List[AddressData], groupedOccupants: List[GroupData]): List[GroupData] = {
+  private def compareAddressAndFromDate(address1: AddressData, address2: AddressData) : Boolean = {
+    if (address1.addressId == address2.addressId) address1.fromDate < address2.fromDate
+    else address1.addressId < address2.addressId
+  }
 
-      occupants match {
-         case Nil => //No further occupancyData so return the grouped occupancy data
-            groupedOccupants
-         case _   => //Process the head of the next occupant ie the head occupant
-            val occ = occupants.head
-            val newGroupedOccupancyData: List[GroupData] = if (conditionForSharedOccupancy(occupants.head, groupedOccupants)) {
-               //add occupant to the current group and set toDate if greater than existing for group
-               val grp = groupedOccupants.head
-               val grpToDate = if (grp.toDate > occ.toDate) grp.toDate else occ.toDate
-               GroupData(grp.groupId, occupants.head.customerId +: grp.customerIds, grp.addressId, grp.fromDate, grpToDate) :: groupedOccupants.tail
-            } else { //Create a new or initial occupancy group and add to the list of occupancy groups
-               val grpId = if (groupedOccupants == Nil) 1 else groupedOccupants.head.groupId + 1
-               GroupData(grpId,Seq(occ.customerId),occ.addressId,occ.fromDate,occ.toDate) :: groupedOccupants
-            }
-            // process the remaining occupancy records, ie the occupants tail, using tail recursion
-            groupOccupants(occupants.tail, newGroupedOccupancyData)
-      }
-   }
+  @tailrec
+  private def groupOccupants(occupants: List[AddressData], groupedOccupants: List[GroupData]): List[GroupData] = {
+    val newGroupedOccupancyData = occupants match {
+       case Nil => //No further occupancyData so return the grouped occupancy data
+         return groupedOccupants
+       case _ if conditionForSharedOccupancy(occupants.head, groupedOccupants) => //Process the head of the next occupant ie the head occupant
+         val occ = occupants.head
+         val grp = groupedOccupants.head
+         val grpToDate = if (grp.toDate > occ.toDate) grp.toDate else occ.toDate
+         GroupData(grp.groupId,occ.customerId +: grp.customerIds,grp.addressId,grp.fromDate,grpToDate) :: groupedOccupants.tail
+       case _ =>  //Create a new or initial occupancy group and add to the list of occupancy groups
+         val occ = occupants.head
+         val grpId = if (groupedOccupants == Nil) 1 else groupedOccupants.head.groupId + 1
+         GroupData(grpId,Seq(occ.customerId),occ.addressId,occ.fromDate,occ.toDate) :: groupedOccupants
+     }
+     // process the remaining occupancy records, ie the occupants tail, using tail recursion
+     groupOccupants(occupants.tail, newGroupedOccupancyData)
+  }
 
    //1.initialise the shared occupancy data to Nil and process all sorted occupants
    def apply(occupants : List[AddressData] ): List[GroupData] = {
-
-      val compareAddressAndFromDate = (address1: AddressData, address2: AddressData) => {
-         if (address1.addressId == address2.addressId) address1.fromDate < address2.fromDate
-         else address1.addressId < address2.addressId
-      }
-
       groupOccupants( occupants.sortWith(compareAddressAndFromDate), Nil)
    }
 }
