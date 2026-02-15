@@ -68,7 +68,7 @@ object GroupOccupancy {
     val newGroupedOccupants = (occupants, groupedOccupants) match {
       case (occ :: _, grp :: grpTail) if sharedOccupancy(occ,grp) => //Process the head of the next occupant ie the head occupant
         val grpToDate = if (grp.toDate > occ.toDate) grp.toDate else occ.toDate
-        GroupData(grp.groupId,occ.customerId +: grp.customerIds,grp.addressId,grp.fromDate,grpToDate) :: grpTail
+        grp.copy(customerIds=occ.customerId +: grp.customerIds,toDate=grpToDate) :: grpTail
       case (occ :: _, grp :: _) => //Create a new occupancy group and add to the list of occupancy groups
         GroupData(grp.groupId+1,Seq(occ.customerId),occ.addressId,occ.fromDate,occ.toDate) :: groupedOccupants
       case (occ :: _, Nil) => //Create an initial occupancy group and add to the list of occupancy groups
