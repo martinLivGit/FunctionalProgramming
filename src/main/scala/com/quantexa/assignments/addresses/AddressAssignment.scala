@@ -71,13 +71,11 @@ object GroupOccupancy {
     val newGroupedOccupancyData = occupants match {
        case Nil => //No further occupancyData so return the grouped occupancy data
          return groupedOccupants
-       case _ if conditionForSharedOccupancy(occupants.head, groupedOccupants) => //Process the head of the next occupant ie the head occupant
-         val occ = occupants.head
+       case (occ :: _) if conditionForSharedOccupancy(occupants.head, groupedOccupants) => //Process the head of the next occupant ie the head occupant
          val grp = groupedOccupants.head
          val grpToDate = if (grp.toDate > occ.toDate) grp.toDate else occ.toDate
          GroupData(grp.groupId,occ.customerId +: grp.customerIds,grp.addressId,grp.fromDate,grpToDate) :: groupedOccupants.tail
-       case _ =>  //Create a new or initial occupancy group and add to the list of occupancy groups
-         val occ = occupants.head
+       case (occ :: _)  =>  //Create a new or initial occupancy group and add to the list of occupancy groups
          val grpId = if (groupedOccupants == Nil) 1 else groupedOccupants.head.groupId + 1
          GroupData(grpId,Seq(occ.customerId),occ.addressId,occ.fromDate,occ.toDate) :: groupedOccupants
      }
