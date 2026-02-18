@@ -66,15 +66,15 @@ object GroupOccupancy {
   @tailrec
   private def groupOccupants(occupants: List[AddressData], groupedOccupants: List[GroupData]): List[GroupData] = {
     val newGroupedOccupants = (occupants, groupedOccupants) match {
+      case (Nil, _) => //No further occupancyData so return the grouped occupancy data
+        return groupedOccupants
+      case (occ :: _, Nil) => //Create an initial occupancy group and add to the list of occupancy groups
+        GroupData(1,Seq(occ.customerId),occ.addressId,occ.fromDate,occ.toDate) :: Nil
       case (occ :: _, grp :: grpTail) if sharedOccupancy(occ,grp) => //Process the head of the next occupant ie the head occupant
         val grpToDate = if (grp.toDate > occ.toDate) grp.toDate else occ.toDate
         grp.copy(customerIds=occ.customerId +: grp.customerIds,toDate=grpToDate) :: grpTail
       case (occ :: _, grp :: _) => //Create a new occupancy group and add to the list of occupancy groups
-        GroupData(grp.groupId+1,Seq(occ.customerId),occ.addressId,occ.fromDate,occ.toDate) :: groupedOccupants
-      case (occ :: _, Nil) => //Create an initial occupancy group and add to the list of occupancy groups
-        GroupData(1,Seq(occ.customerId),occ.addressId,occ.fromDate,occ.toDate) :: Nil
-      case (Nil, _) => //No further occupancyData so return the grouped occupancy data
-        return groupedOccupants
+        GroupData(grp.groupId+1,Seq(occ.customerId),occ.addressId,occ.fromDate,occ.toDate) :: groupedOccupants    
     }
     // process the remaining occupancy records, ie the occupants tail, using tail recursion
     groupOccupants(occupants.tail, newGroupedOccupants)
