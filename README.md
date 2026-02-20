@@ -5,3 +5,5 @@ Spark/Scala Programming Assessment
   1. Implementation using filters/map on transaction lists.
   2. Implementation using fold on transaction lists.
 - Accounts: written using the Datasets API. Joining datasets and performing aggregration whilst avoiding the use of SQL functions.
+
+Basic tests are provided.
