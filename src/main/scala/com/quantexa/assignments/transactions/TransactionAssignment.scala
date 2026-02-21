@@ -50,11 +50,12 @@ object TransactionAssignment {
    def apply(transactions: List[Transaction]
              ,aggregator: (Int, String, List[(Int, Transaction)]) => DayAccountStats = txnAggregatorWithFilter): List[DayAccountStats] =
    {
-      (1 to 31)
-         .flatMap( day =>  transactions.filter(txn => txn.transactionDay >= day-5 && txn.transactionDay < day)
-                                       .map( txn => (day,txn)))
-         .groupBy( p => (p._1, p._2.accountId))
-         .map{ case (( day:Int, account:String), dyTxns) => (aggregator(day, account, dyTxns.toList))}
-         .toList
+      ( for {
+        day <- 1 to 31
+        txn <- transactions.filter(txn => txn.transactionDay >= day-5 && txn.transactionDay < day)
+      } yield (day, txn) )
+     .groupBy( p => (p._1, p._2.accountId))
+     .map{ case (( day:Int, account:String), dyTxns) => aggregator(day, account, dyTxns.toList) }
+     .toList
    }
 }
