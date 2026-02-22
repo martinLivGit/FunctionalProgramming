@@ -54,7 +54,7 @@ object TransactionAssignment {
    {
       ( for {
         day <- 1 to 31
-        txn <- transactions if (txn.transactionDay >= day-5 && txn.transactionDay < day)
+        txn <- transactions if txn.transactionDay >= day-5 && txn.transactionDay < day
       } yield (day, txn) )
      .groupBy( p => (p._1, p._2.accountId))
      .map{ case (( day:Int, account:String), dyTxns) => aggregator(day, account, dyTxns.toList) }
