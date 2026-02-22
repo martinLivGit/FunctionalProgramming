@@ -20,7 +20,7 @@ case class DayAccountStats(
 
 object TransactionAssignment {
 
-  private val myFoldAggregator: ((Double, Double, Double, Double, Double), (Int, Transaction)) => (Double,Double,Double,Double,Double) = {
+  private val foldAggregator: ((Double, Double, Double, Double, Double), (Int, Transaction)) => (Double,Double,Double,Double,Double) = {
     case ( (m:Double,t:Double,aa:Double,cc:Double,ff:Double), (_,txn:Transaction) ) =>
       val max = if (txn.transactionAmount > m) txn.transactionAmount else m
       txn.category match {
@@ -32,7 +32,7 @@ object TransactionAssignment {
   }
 
   def txnAggregatorWithFold(day:Int, account: String, dyTxnLst: List[(Int,Transaction)]):DayAccountStats = {
-    val (max,tot,aa,cc,ff) = dyTxnLst.foldLeft((0D,0D,0D,0D,0D))(myFoldAggregator)
+    val (max,tot,aa,cc,ff) = dyTxnLst.foldLeft((0D,0D,0D,0D,0D))(foldAggregator)
     DayAccountStats(day, account, max, tot/dyTxnLst.size, aa, cc, ff)
   }
 
