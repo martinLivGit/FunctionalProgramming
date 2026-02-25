@@ -33,7 +33,7 @@ class TransactionAssignmentSolutionSuite extends FunSuite {
   }
 
   test("accounts stats") {
-    assert( dayAccountStats.map(x=>x.accountId).toSet == Set("A9", "A22", "A47", "A33", "A11", "A4", "A10", "A15", "A32", "A26", "A21", "A37", "A46", "A41", "A12", "A5", "A16", "A49", "A38", "A27", "A31", "A34", "A23", "A19", "A20", "A39", "A45", "A17", "A28", "A2", "A13", "A40", "A42", "A1", "A6", "A30", "A35", "A24", "A36", "A29", "A43", "A18", "A8", "A3", "A14", "A44", "A7", "A25", "A48"))
+    assert( dayAccountStats.map(x=>x.accountId).distinct.sorted == List("A1", "A10", "A11", "A12", "A13", "A14", "A15", "A16", "A17", "A18", "A19", "A2", "A20", "A21", "A22", "A23", "A24", "A25", "A26", "A27", "A28", "A29", "A3", "A30", "A31", "A32", "A33", "A34", "A35", "A36", "A37", "A38", "A39", "A4", "A40", "A41", "A42", "A43", "A44", "A45", "A46", "A47", "A48", "A49", "A5", "A6", "A7", "A8", "A9") )
     assert( dayAccountStats.size == 1369)
     assert( dayAccountStats.map(x=>x.accountId).distinct.size == 49 )
   }
