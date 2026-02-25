@@ -79,10 +79,9 @@ object AccountAssignment {
    //set logging level
    Logger.getRootLogger.setLevel(Level.WARN)
 
+   private case class Accumulator( accounts:List[AccountData] = List.empty[AccountData],totalBalance:Long = 0L)
+
    private def customerAccountsAggregator(customerId: String, acctIt: Iterator[(String,(CustomerData,AccountData))]) : CustomerAccountOutput = {
-
-    case class Accumulator( accounts:List[AccountData] = List.empty[AccountData],totalBalance:Long = 0L)
-
     val acctLst = acctIt.toList
     val accumulator = acctLst.foldLeft(Accumulator()) {
       case (accumulator,(_,(_,account))) if account != null => Accumulator(accumulator.accounts :+ account, accumulator.totalBalance + account.balance)
@@ -94,10 +93,7 @@ object AccountAssignment {
     CustomerAccountOutput(customerId,forename,surname,accounts,accounts.size,totalBalance,avgBalance)
   }
 
-   def apply(customersDF: DataFrame, accountsDF: DataFrame): List[CustomerAccountOutput] = {
-
-      val customersDS = customersDF.as[CustomerData]
-      val accountsDS = accountsDF.withColumn("balance", 'balance.cast("long")).as[AccountData]
+   def apply(customersDS: CustomerData, accountsDS: accountsDS): List[CustomerAccountOutput] = {
 
       //join customer data with account
       //add a customerId field populated from either customer or account objects
