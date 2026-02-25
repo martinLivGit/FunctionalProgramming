@@ -52,7 +52,7 @@ class TransactionAssignmentSolutionSuite extends FunSuite {
       for {
         day <- 1 to 31
         account <- dayAccountStats.map(x=>x.accountId).distinct
-      } yield mapDayAccountStats.getOrElse((account,day),DayAccountStats(day,account,-1D,-1D,-1D,-1D,-1D))
+      } yield mapDayAccountStats.getOrElse((account,day),DayAccountStats(day,account,0D,0D,0D,0D,0D))
     ).toList
 
     assert(dayAccountStats.map(x=>x.accountId).distinct.size * 31 == completeDayAccountStats.size)
