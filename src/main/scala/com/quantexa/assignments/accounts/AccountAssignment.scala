@@ -81,20 +81,21 @@ object AccountAssignment {
 
    private case class Accumulator( accounts:List[AccountData] = List.empty[AccountData],totalBalance:Long = 0L)
 
+   private val aggOp: ( Accumulator, (String,(CustomerData,AccountData)) ) => Accumulator = {
+    case (accumulator,(_,(_,account))) if account != null => Accumulator(accumulator.accounts :+ account, accumulator.totalBalance + account.balance)
+    case (accumulator,_) => accumulator
+   }
+
    private def customerAccountsAggregator(customerId: String, acctIt: Iterator[(String,(CustomerData,AccountData))]) : CustomerAccountOutput = {
     val acctLst = acctIt.toList
-    val accumulator = acctLst.foldLeft(Accumulator()) {
-      case (accumulator,(_,(_,account))) if account != null => Accumulator(accumulator.accounts :+ account, accumulator.totalBalance + account.balance)
-      case (accumulator,_) => accumulator
-    }
+    val accumulator = acctLst.foldLeft(Accumulator())(aggOp)
     val (accounts, totalBalance) = (accumulator.accounts, accumulator.totalBalance)
     val (forename, surname) = if (acctLst.head._2._1 != null) (acctLst.head._2._1.forename, acctLst.head._2._1.surname) else ("","")
     val avgBalance = if ( accounts.isEmpty) 0 else totalBalance/accounts.size
     CustomerAccountOutput(customerId,forename,surname,accounts,accounts.size,totalBalance,avgBalance)
-  }
+   }
 
    def apply(customersDS: CustomerData, accountsDS: accountsDS): List[CustomerAccountOutput] = {
-
       //join customer data with account
       //add a customerId field populated from either customer or account objects
       //Group accounts by customer id
