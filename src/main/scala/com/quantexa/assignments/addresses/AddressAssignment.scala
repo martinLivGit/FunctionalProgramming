@@ -50,15 +50,16 @@ case class GroupData(
   ,toDate: Int
 )
 
+object AddressData {
+  implicit def orderingByName: Ordering[AddressData] =
+    Ordering.by(a => (a.addressId, a.fromDate))
+}
+
 object GroupOccupancy {
 
   //logic check for shared/overlapping occupancy
   private def sharedOccupancy(addr: AddressData, grp: GroupData): Boolean = {
     addr.addressId == grp.addressId && (grp.fromDate to grp.toDate).contains(addr.fromDate)
-  }
-
-  private def compareAddressAndFromDate(addr1: AddressData, addr2: AddressData) : Boolean = {
-    if (addr1.addressId == addr2.addressId) addr1.fromDate < addr2.fromDate else addr1.addressId < addr2.addressId
   }
  
   @tailrec
@@ -80,6 +81,6 @@ object GroupOccupancy {
 
    //1.initialise the shared occupancy data to Nil and process all sorted occupants
    def apply(occupants : List[AddressData] ): List[GroupData] = {
-      groupOccupants( occupants.sortWith(compareAddressAndFromDate), Nil)
+      groupOccupants( occupants.sorted), Nil)
    }
 }
