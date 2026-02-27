@@ -51,7 +51,7 @@ case class GroupData(
 )
 
 object AddressData {
-  implicit def orderingByName: Ordering[AddressData] =
+  implicit def orderingByIdFromDate: Ordering[AddressData] =
     Ordering.by(a => (a.addressId, a.fromDate))
 }
 
