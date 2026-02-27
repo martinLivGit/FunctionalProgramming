@@ -81,6 +81,6 @@ object GroupOccupancy {
 
    //1.initialise the shared occupancy data to Nil and process all sorted occupants
    def apply(occupants : List[AddressData] ): List[GroupData] = {
-      groupOccupants( occupants.sorted), Nil)
+      groupOccupants( occupants.sorted, Nil)
    }
 }
