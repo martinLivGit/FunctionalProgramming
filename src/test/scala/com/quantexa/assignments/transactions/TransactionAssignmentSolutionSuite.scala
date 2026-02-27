@@ -33,17 +33,17 @@ class TransactionAssignmentSolutionSuite extends FunSuite {
   }
 
   test("accounts stats") {
-    println(dayAccountStats.map(x=>x.accountId).distinct.sorted)
-    assert( dayAccountStats.map(x=>x.accountId).distinct.sorted == List("A1", "A10", "A11", "A12", "A13", "A14", "A15", "A16", "A17", "A18", "A19", "A2", "A20", "A21", "A22", "A23", "A24", "A25", "A26", "A27", "A28", "A29", "A3", "A30", "A31", "A32", "A33", "A34", "A35", "A36", "A37", "A38", "A39", "A4", "A40", "A41", "A42", "A43", "A44", "A45", "A46", "A47", "A48", "A49", "A5", "A6", "A7", "A8", "A9") )
+    println(dayAccountStats.map(_.accountId).distinct.sorted)
+    assert( dayAccountStats.map(_.accountId).distinct.sorted == List("A1", "A10", "A11", "A12", "A13", "A14", "A15", "A16", "A17", "A18", "A19", "A2", "A20", "A21", "A22", "A23", "A24", "A25", "A26", "A27", "A28", "A29", "A3", "A30", "A31", "A32", "A33", "A34", "A35", "A36", "A37", "A38", "A39", "A4", "A40", "A41", "A42", "A43", "A44", "A45", "A46", "A47", "A48", "A49", "A5", "A6", "A7", "A8", "A9") )
     assert( dayAccountStats.size == 1369)
-    assert( dayAccountStats.map(x=>x.accountId).distinct.size == 49 )
+    assert( dayAccountStats.map(_.accountId).distinct.size == 49 )
   }
 
   test("missing records accounted for") {    
     val mapDayAccountStats = (
       for {
         day <- 1 to 31
-        account <- dayAccountStats.map(x=>x.accountId).distinct
+        account <- dayAccountStats.map(_.accountId).distinct
         stat <- dayAccountStats if stat.transactionDay == day && stat.accountId == account
       } yield (account, day ) -> stat
     ).toMap
@@ -51,10 +51,10 @@ class TransactionAssignmentSolutionSuite extends FunSuite {
     val completeDayAccountStats = ( 
       for {
         day <- 1 to 31
-        account <- dayAccountStats.map(x=>x.accountId).distinct
+        account <- dayAccountStats.map(_.accountId).distinct
       } yield mapDayAccountStats.getOrElse((account,day),DayAccountStats(day,account,0D,0D,0D,0D,0D))
     ).toList
 
-    assert(dayAccountStats.map(x=>x.accountId).distinct.size * 31 == completeDayAccountStats.size)
+    assert(dayAccountStats.map(_.accountId).distinct.size * 31 == completeDayAccountStats.size)
   }
 }
