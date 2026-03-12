@@ -87,10 +87,10 @@ object AccountAssignment {
    }
 
    private def customerAccountsAggregator(customerId: String, acctIt: Iterator[(String,(CustomerData,AccountData))]) : CustomerAccountOutput = {
-    val acctLst = acctIt.toList
-    val accumulator = acctLst.foldLeft(Accumulator())(aggOp)
+    val cust = acctIt.toList.head._2._1
+    val accumulator = acctIt.foldLeft(Accumulator())(aggOp)
     val (accounts, totalBalance) = (accumulator.accounts, accumulator.totalBalance)
-    val (forename, surname) = if (acctLst.head._2._1 != null) (acctLst.head._2._1.forename, acctLst.head._2._1.surname) else ("","")
+    val (forename, surname) = if (cust != null) (cust.forename, cust.surname) else ("","")
     val avgBalance = if ( accounts.isEmpty) 0 else totalBalance/accounts.size
     CustomerAccountOutput(customerId,forename,surname,accounts,accounts.size,totalBalance,avgBalance)
    }
