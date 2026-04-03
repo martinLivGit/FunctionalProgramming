@@ -22,13 +22,11 @@ object TransactionAssignment {
 
   private def aggOp: ((Double, Double, Double, Double, Double), (Int, Transaction)) => (Double,Double,Double,Double,Double) = {
     case ( (m:Double,t:Double,aa:Double,cc:Double,ff:Double), (_,txn:Transaction) ) =>
-      val max = if (txn.transactionAmount > m) txn.transactionAmount else m
-      txn.category match {
-        case "AA" => (max, t + txn.transactionAmount, aa + txn.transactionAmount, cc, ff)
-        case "CC" => (max, t + txn.transactionAmount, aa , cc + txn.transactionAmount, ff)
-        case "FF" => (max, t + txn.transactionAmount, aa, cc, ff + txn.transactionAmount)
-        case _    => (max, t + txn.transactionAmount, aa, cc, ff)
-      }
+      ( if (txn.transactionAmount > m) txn.transactionAmount else m
+        ,t + txn.transactionAmount
+        ,if (txn.category == "AA") aa + txn.transactionAmount else aa
+        ,if (txn.category == "CC") cc + txn.transactionAmount else cc
+        ,if (txn.category == "FF") ff + txn.transactionAmount else ff )
   }
 
   def txnAggregatorWithFold(day:Int, account: String, dyTxnLst: List[(Int,Transaction)]):DayAccountStats = {
