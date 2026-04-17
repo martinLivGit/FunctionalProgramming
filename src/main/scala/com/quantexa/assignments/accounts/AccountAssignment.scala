@@ -105,7 +105,7 @@ object AccountAssignment {
          .joinWith(accountsDS
             ,customersDS.col("customerId").equalTo(accountsDS.col("customerId"))
             ,"full_outer")
-         .map( x => if (x._1 == null) (x._2.customerId,x) else (x._1.customerId,x))
+         .map{ case (cu:CustomerData,ac:AccountData) => val id = if (cu == null) ac.customerId else cu.customerId ; (id, (cu,ac)) }
          .groupByKey( x => x._1 )
          .mapGroups(customerAccountsAggregator)
          .collect()
