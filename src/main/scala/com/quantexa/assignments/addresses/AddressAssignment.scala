@@ -61,26 +61,23 @@ object GroupOccupancy {
   private def overlappingOccupant(addr: AddressData, grp: GroupData): Boolean = {
     addr.addressId == grp.addressId && (grp.fromDate to grp.toDate).contains(addr.fromDate)
   }
- 
-  @tailrec
-  private def groupOccupants(occupants: List[AddressData], groupedOccupants: List[GroupData]): List[GroupData] = {
-    val newGroupedOccupants = (occupants, groupedOccupants) match {
-      case (Nil, _) => //No further occupancyData so return the grouped occupancy data
-        return groupedOccupants
-      case (occ :: _, Nil) => //Create an initial occupancy group and add to the list of occupancy groups
-        GroupData(1,Seq(occ.customerId),occ.addressId,occ.fromDate,occ.toDate) :: Nil
-      case (occ :: _, grp :: grpTail) if overlappingOccupant(occ,grp) => //Process the the next occupant ie the head occupant updating the current group
+  
+  private def aggOp( groupedOccupants:List[GroupData],occ:AddressData):List[GroupData] =
+  {
+    groupedOccupants match {
+      case grp :: grpTail if overlappingOccupant(occ,grp) => //Add current occupant to the current group and update the group toDate if current occupant is greater
         val grpToDate = if (grp.toDate > occ.toDate) grp.toDate else occ.toDate
-        grp.copy(customerIds=occ.customerId +: grp.customerIds,toDate=grpToDate) :: grpTail
-      case (occ :: _, grp :: _) => //Create a new occupancy group and add to the list of occupancy groups
-        GroupData(grp.groupId+1,Seq(occ.customerId),occ.addressId,occ.fromDate,occ.toDate) :: groupedOccupants    
+        grp.copy(customerIds=grp.customerIds :+ occ.customerId,toDate=grpToDate) :: grpTail
+      case grp :: _ => //Create a new occupancy group and add to the list of occupancy groups
+        GroupData(grp.groupId+1,Seq(occ.customerId),occ.addressId,occ.fromDate,occ.toDate) :: groupedOccupants
+      case Nil => //Create an initial occupancy group and add to the list of occupancy groups
+        GroupData(1,Seq(occ.customerId),occ.addressId,occ.fromDate,occ.toDate) :: Nil
     }
-    // process the remaining occupancy records, ie the occupants tail, using tail recursion
-    groupOccupants(occupants.tail, newGroupedOccupants)
   }
 
-   //1.initialise the shared occupancy data to Nil and process all sorted occupants
-   def apply(occupants : List[AddressData] ): List[GroupData] = {
-      groupOccupants( occupants.sorted, Nil)
-   }
+  //takes a start and fold occupants return updated accumulator
+  def apply(occupants : List[AddressData]): List[GroupData] = {
+    occupants.sorted.foldLeft(List.empty[GroupData])(aggOp)
+  }
+
 }
