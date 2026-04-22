@@ -58,10 +58,8 @@ object AddressData {
 object GroupOccupancy {
 
   //logic check for shared/overlapping occupancy
-  private def overlappingOccupant(addr: AddressData, grp: GroupData): Boolean = {
-    addr.addressId == grp.addressId && (grp.fromDate to grp.toDate).contains(addr.fromDate)
-  }
-  
+  private def overlappingOccupant(addr: AddressData, grp: GroupData): Boolean = addr.addressId == grp.addressId && (grp.fromDate to grp.toDate).contains(addr.fromDate)
+   
   private def aggOp( groupedOccupants:List[GroupData],occ:AddressData):List[GroupData] =
   {
     groupedOccupants match {
