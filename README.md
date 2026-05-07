@@ -9,7 +9,7 @@
 
 Basic tests are provided.
 
-## Explanation
+## Solution elements
 
 ### Addresses
 
