@@ -17,7 +17,7 @@ Good to understand recursive processing, use of accumulators and Scala tail recu
 
 ### Transactions
 
-Good to understand flatMap, filter, map chaining and the syntactic-sugar of for comprehension - so can implement with either - best to start with flatMap, filter, map. Subsequently, need to get the grouping and mapping and also pass a valid aggregation function to map. I provided a couple of examples of functions - again folding will work. Good to understand nested tuples and associated pattern matching.
+Good to understand flatMap, filter, map chaining and the syntactic-sugar of for-comprehension - so can implement with either - best to start with flatMap, filter, map. Subsequently, need to get the grouping and mapping and also pass a valid aggregation function to map. I provided a couple of examples of functions - again folding will work. Good to understand nested tuples and associated pattern matching.
 
 ### Accounts
 
