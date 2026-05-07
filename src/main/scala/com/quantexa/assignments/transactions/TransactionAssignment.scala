@@ -20,7 +20,8 @@ case class DayAccountStats(
 
 object TransactionAssignment {
 
-  private def aggOp: ((Double, Double, Double, Double, Double), (Int, Transaction)) => (Double,Double,Double,Double,Double) = {
+  private val aggOp : ( (Double, Double, Double, Double, Double), (Int, Transaction) ) => (Double, Double, Double, Double, Double) =
+  {
     case ( (m:Double,t:Double,aa:Double,cc:Double,ff:Double), (_,txn:Transaction) ) =>
       ( if (txn.transactionAmount > m) txn.transactionAmount else m
         ,t + txn.transactionAmount
@@ -29,33 +30,37 @@ object TransactionAssignment {
         ,if (txn.category == "FF") ff + txn.transactionAmount else ff )
   }
 
-  def txnAggregatorWithFold(day:Int, account: String, dyTxnLst: List[(Int,Transaction)]):DayAccountStats = {
-    val (max,tot,aa,cc,ff) = dyTxnLst.foldLeft((0D,0D,0D,0D,0D))(aggOp)
-    DayAccountStats(day, account, max, tot/dyTxnLst.size, aa, cc, ff)
+  def txnAggregatorWithFold( dyAccTxnList:((Int,String), IndexedSeq[(Int,Transaction)]) ): DayAccountStats = {
+    dyAccTxnList match {
+      case ((day: Int, account: String), dyTxns: IndexedSeq[(Int, Transaction)]) =>
+        val (max, tot, aa, cc, ff) = dyTxns.foldLeft((0D, 0D, 0D, 0D, 0D))(aggOp)
+        DayAccountStats(day, account, max, tot / dyTxns.size, aa, cc, ff)
+    }
   }
 
-  def txnAggregatorWithFilter( day:Int, account:String, dyTxnLst:List[(Int, Transaction)]) : DayAccountStats = {
-      val txnTotalAmount = ( category: String) => dyTxnLst.filter(_._2.category == category).map(_._2.transactionAmount).sum
+  def txnAggregatorWithFilter( dyAccTxns:((Int,String), IndexedSeq[(Int,Transaction)]) ) : DayAccountStats = {
+    val txnTotalAmount = ( category: String) => dyAccTxns._2.filter(_._2.category == category).map(_._2.transactionAmount).sum
+    val txnAmount = dyAccTxns._2.map(_._2.transactionAmount)
 
-      val tot = dyTxnLst.map(_._2.transactionAmount).sum
-      val max = dyTxnLst.map(_._2.transactionAmount).max
-      val avg = tot/dyTxnLst.size
-      val aa = txnTotalAmount("AA")
-      val cc = txnTotalAmount("CC")
-      val ff = txnTotalAmount("FF")
+    val tot = txnAmount.sum
+    val max = txnAmount.max
+    val avg = tot/dyAccTxns._2.size
+    val aa = txnTotalAmount("AA")
+    val cc = txnTotalAmount("CC")
+    val ff = txnTotalAmount("FF")
 
-      DayAccountStats(day,account,max,avg,aa,cc,ff)
-    }
+    DayAccountStats(dyAccTxns._1._1,dyAccTxns._1._2,max,avg,aa,cc,ff)
+  }
 
-   def apply(transactions: List[Transaction]
-             ,aggregator: (Int, String, List[(Int, Transaction)]) => DayAccountStats = txnAggregatorWithFilter): List[DayAccountStats] =
-   {
-      ( for {
-        day <- 1 to 31
-        txn <- transactions if txn.transactionDay >= day-5 && txn.transactionDay < day
-      } yield (day, txn) )
+  def apply(transactions: List[Transaction]
+            ,aggregator: (((Int, String), IndexedSeq[(Int, Transaction)])) => DayAccountStats = txnAggregatorWithFilter): List[DayAccountStats] =
+  {
+     (for {
+       reportDay <- 1 to 31
+       txn <- transactions if txn.transactionDay >= reportDay-5 && txn.transactionDay < reportDay
+      } yield (reportDay, txn) )
      .groupBy( p => (p._1, p._2.accountId))
-     .map{ case (( day:Int, account:String), dyTxns) => aggregator(day, account, dyTxns.toList) }
+     .map(aggregator)
      .toList
    }
 }
